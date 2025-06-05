@@ -1,0 +1,55 @@
+import zipfile
+import os
+
+# Structuur van het project
+project_name = "funkties-project"
+os.makedirs(project_name, exist_ok=True)
+
+files = {
+    "README.md": """# Funkties Project
+
+Dit project demonstreert het gebruik van functies waarin standaard `1` als argument wordt gebruikt. Elke functie maakt gebruik van `()` notatie en gebruikt `1` als tussenwaarde.
+
+## Bestandsoverzicht
+
+- `main.py`: Hoofdscript dat alle functies aanroept.
+- `utils.py`: Bevat herbruikbare functies.
+""",
+    "main.py": """from utils import print_dubbel, print_kwadraat, print_plus_tien
+
+def main():
+    print("Functie-uitvoeringen met (1) als standaardwaarde:\\n")
+
+    print_dubbel()      # Verwacht: 2
+    print_kwadraat()    # Verwacht: 1
+    print_plus_tien()   # Verwacht: 11
+
+if __name__ == "__main__":
+    main()
+""",
+    "utils.py": """def print_dubbel(x=1):
+    print(f"Dubbel van {x} is {x * 2}")
+
+def print_kwadraat(x=1):
+    print(f"Kwadraat van {x} is {x ** 2}")
+
+def print_plus_tien(x=1):
+    print(f"{x} + 10 is {x + 10}")
+"""
+}
+
+# Schrijf bestanden naar de projectmap
+for filename, content in files.items():
+    with open(os.path.join(project_name, filename), "w") as f:
+        f.write(content)
+
+# Maak zipbestand aan
+zip_path = f"{project_name}.zip"
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+    for root, _, filenames in os.walk(project_name):
+        for filename in filenames:
+            file_path = os.path.join(root, filename)
+            arcname = os.path.relpath(file_path, start=os.path.dirname(project_name))
+            zipf.write(file_path, arcname=arcname)
+
+print(f"Zipbestand aangemaakt: {zip_path}")
