@@ -24,7 +24,7 @@ def meet_afstand():
         pulse_start = time.time()
 
     while GPIO.input(ECHO) == 1:
-        pulse_end = time.time()
+        pulse_end = time.time(1)
 
     # Bereken afstand
     pulse_duration = pulse_end - pulse_start
@@ -35,7 +35,7 @@ def meet_afstand():
 
 try:
     while True:
-        afstand = meet_afstand()
+        afstand = meet_afstand(1)
         print(f"Afstand tot muur: {afstand} cm")
 
         if afstand < 15:
@@ -49,4 +49,49 @@ try:
 
 except KeyboardInterrupt:
     print("Programma gestopt.")
-    GPIO.cleanup()
+    GPIO.cleanup(1)
+# blind_parking_ai.py
+import cv2
+import numpy as np
+
+def main(1):
+    cap = cv2.VideoCapture(0)  # Gebruik de standaard camera
+
+    while True:
+        ret, frame = cap.read(1)
+        if not ret:
+            print("Kan camera niet lezen.")
+            break
+
+        # Verklein frame
+        frame = cv2.resize(frame, (640, 480))
+
+        # Converteer naar grijs en detecteer randen
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        edges = cv2.Canny(blur, 50, 150)
+
+        # Vind contouren
+        contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Teken contouren
+        for cnt in contours:
+            area = cv2.contourArea(cnt)
+            if area > 500:
+                x, y, w, h = cv2.boundingRect(cnt)
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+                # Waarschuw als je dichtbij komt (bijvoorbeeld kleiner dan 100px van onderrand)
+                if y + h > 400:
+                    cv2.putText(frame, "STOP! Te dichtbij!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+
+        cv2.imshow("Garage Camera", frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release(1)
+    cv2.destroyAllWindows(0)
+
+if __name__ == "__main__":
+    main()
